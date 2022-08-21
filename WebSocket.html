@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Front test - PHP Push WebSocket</title>
+<meta charset="utf-8" />
+
+<style>
+
+#terminal {
+	border: solid 1px #999999;
+	border-top-color: #CCCCCC;
+	border-left-color: #CCCCCC;
+	padding: 5px;
+	width: 95%;
+	height: 500px;
+	overflow-y: scroll;
+}
+
+</style>
+
+
+
+
+
+
+<script type="text/javascript">
+
+
+
+
+window.onbeforeunload = function() {
+	ws.send('quit');
+};
+
+
+
+function getDate(){
+
+	var date = new Date();
+	var dateText = '['+date.getFullYear()+'-'+(date.getMonth()+1 > 9 ? date.getMonth()+1 : '0'+date.getMonth()+1)+'-'+(date.getDate() > 9 ? date.getDate() : '0'+date.getDate())+' '+(date.getHours() > 9 ? date.getHours() : '0'+date.getHours())+':'+(date.getMinutes() > 9 ? date.getMinutes() : '0'+date.getMinutes())+':'+(date.getSeconds() > 9 ? date.getSeconds() : '0'+date.getSeconds())+']';
+return dateText;
+}
+
+
+
+
+
+var ws = ""; 
+var url = 'wss://echo.websocket.org';
+
+function WSConnect(){
+
+	try {
+
+		url = document.getElementById("wsuri").value;
+		ws = new WebSocket(url);
+		write('Connecting... (readyState '+ws.readyState+')');
+		ws.onopen = function(msg) {
+			write('Connection successfully opened (readyState ' + this.readyState+')');
+			
+		};
+
+
+		ws.onmessage = function(msg) {
+			write('Server says: '+msg.data);
+		};
+
+
+
+
+		ws.onclose = function(msg) {
+			if(this.readyState == 2)
+				write('Closing... The connection is going throught the closing handshake (readyState '+this.readyState+')');
+			else if(this.readyState == 3)
+				write('Connection closed... The connection has been closed or could not be opened (readyState '+this.readyState+')');
+			else
+				write('Connection closed... (unhandled readyState '+this.readyState+')');
+		};
+
+
+
+		ws.onerror = function(event) {
+			var dateText = getDate();
+			var text = 'Error occured: '+event.data;
+			write(text,'red');		
+		};
+
+
+	}
+
+	catch(exception) {
+		write(exception);
+	}
+
+
+}
+
+
+function WSDisconnect(){
+	try {
+		ws.close();
+	}
+	catch(exception){
+		write(exception);
+	}
+}
+
+
+function sendData(sData){
+	try {
+		ws.send(sData);
+	}
+	catch(exception){
+		write(exception);
+	}
+}
+
+
+
+
+
+function write(text,tColor) {
+	var dateText = getDate();
+	var terminal = document.getElementById('terminal');
+	terminal.innerHTML = terminal.innerHTML + '<li style="color:'+tColor+';">'+dateText+' '+text+'</li><br>';
+	terminal.scrollTop = terminal.scrollHeight;
+}
+</script>
+
+</head>
+
+
+
+
+
+
+<body>
+
+
+<table border=1 width="100%" style="table-layout:fixed; overflow: hidden;">
+<tr>
+<td width="50%" valign=top>
+<br>WebSocket URL:<br>
+<textarea type=text id="wsuri"  cols="40" rows="5">wss://echo.websocket.org</textarea>
+<input type=Button Value="Connect" onclick=WSConnect()></input><input type=Button Value="Disconnect" onclick=WSDisconnect()></input><br><br><br>
+
+
+<textarea type=text id="sData1"  cols="40" rows="5">{"PlayerAPI":"GetPlayerInfo"}</textarea>
+<input type=Button Value="Gonder" onclick=sendData(document.getElementById("sData1").value)></input>
+
+<br>
+
+<textarea type=text id="sData2"  cols="40" rows="5">Test</textarea>
+<input type=Button Value="Gonder" onclick=sendData(document.getElementById("sData2").value)></input>
+
+
+
+</td>
+<td width="50%" valign=top>
+
+
+<br>LOG:<br>
+
+<div id="terminal" class="editable" contenteditable="true">
+<ul ></ul>
+</div>
+
+
+</td>
+</tr>
+</table>
+
+
+	
+</body>
+</html>
+
